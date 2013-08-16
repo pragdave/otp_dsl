@@ -23,7 +23,7 @@ in the server process using
 The `use` function takes the following options:
 
 `register`
-  The specification of the name under which to register the server. For
+: The specification of the name under which to register the server. For
   example, if you wanted to register globally as `:fred`, do
 
       use GenserverDsl, register: { :global, :fred }
@@ -32,7 +32,7 @@ The `use` function takes the following options:
   an atom derived from the module name.
 
 `initial_state` 
-  A value representing an initial state for tbe server. Defaults to
+: A value representing an initial state for tbe server. Defaults to
   `nil`.
 
 ## Example
