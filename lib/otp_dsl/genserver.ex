@@ -1,5 +1,19 @@
 defmodule OtpDsl.Genserver do
 
+  defmodule ReplyUser do
+    @moduledoc false
+    defmacro reply(value) do
+      quote do: { :reply, unquote(value), var!(state, :user) }
+    end
+  end
+
+  defmodule ReplyNil do
+    @moduledoc false
+    defmacro reply(value) do
+      quote do: { :reply, unquote(value), var!(state) }
+    end
+  end
+
   @moduledoc OtpDsl.Util.LazyDoc.for("## OtpDsl.Genserver")
 
 
@@ -53,27 +67,40 @@ defmodule OtpDsl.Genserver do
      end
   """
 
-  defmacro defcall({name, _, params}=defn, do: body) do
+  defmacro defcall({name, meta, params}=defn, do: body) do
+    # See if the user has provided the `state` argument
+    varctx = if Enum.find(params, fn {pname, _, _} -> pname == :state end) do
+      # Remove it from function signatures
+      params = List.keydelete params, :state, 0
+      defn = {name,meta,params}
+      nil
+    else
+      :user
+    end
+
     quote do
       def unquote(defn) do
         :gen_server.call(my_name, {unquote(name), unquote_splicing(params)})
       end
 
-      def handle_call({unquote(name), unquote_splicing(params)}, var!(_from, nil), var!(state, nil)) do 
+      def handle_call({unquote(name), unquote_splicing(params)}, var!(_from, nil), var!(state, unquote(varctx))) do
+        # This is a workaround to keep the compiler at bay
+        unquote(if varctx == :user do
+          quote do: import(ReplyUser, only: [reply: 1])
+        else
+          quote do: import(ReplyNil, only: [reply: 1])
+        end)
+
         unquote(body)
       end
     end
   end
 
-  @doc """
-  Generate a reply from a call handler that does not change the state.  The value will be
-  returned as the second element of the :reply tuple.
-  """
-  defmacro reply(value) do
-    quote do
-      { :reply, unquote(value), var!(state) }
-    end
-  end
+  #@doc """
+  #Generate a reply from a call handler that does not change the state.  The value will be
+  #returned as the second element of the :reply tuple.
+  #"""
+  #def reply(value)
 
   @doc """
   Generate a reply from a call handler and also set the state.  The value will be
@@ -89,7 +116,7 @@ defmodule OtpDsl.Genserver do
   # Ideally should be private, but...
 
   def name_from(module_name) do
-    Regex.replace(%r{(.)\.?([A-Z])}, inspect(module_name), "\\1_\\2") 
+    Regex.replace(%r{(.)\.?([A-Z])}, inspect(module_name), "\\1_\\2")
     |> String.downcase
     |> binary_to_atom
   end
