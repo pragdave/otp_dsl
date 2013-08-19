@@ -7,7 +7,7 @@ executed in its own process.
 
 ``` elixir
 defmodule FactorialServer do
-  use GenserverDsl
+  use OtpDsl.Genserver
 
   defcall factorial!(n) do
     reply(Enum.reduce(1..n, 1, &(&1*&2)))
