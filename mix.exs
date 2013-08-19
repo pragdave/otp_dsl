@@ -1,18 +1,14 @@
-defmodule GenserverDsl.Mixfile do
+defmodule OtpDsl.Mixfile do
   use Mix.Project
 
   def project do
-    [ app: :genserver_dsl,
+    [ app: :otp_dsl,
       version: "0.0.1",
       elixir: "~> 0.10.2-dev",
       deps: deps ]
   end
 
-  def application do
-    []
-  end
+  defp application, do: []
+  defp deps,        do: []
 
-  defp deps do
-    []
-  end
 end

@@ -1,4 +1,4 @@
-defmodule GenserverDsl do
+defmodule OtpDsl.Genserver do
 
   @moduledoc """
   A simple DSL wrapper for GenServer modules. It reduces duplication by
@@ -8,7 +8,7 @@ defmodule GenserverDsl do
   module is a GenServer with a single API, `factorial`.
 
       defmodule FactorialServer do
-        use GenserverDsl
+        use OtpDsl.Genserver
 
         defcall factorial!(n) do
           reply(Enum.reduce(1..n, 1, &(&1*&2)))
@@ -27,7 +27,7 @@ defmodule GenserverDsl do
     The specification of the name under which to register the server. For
     example, if you wanted to register globally as `:fred`, do
 
-        use GenserverDsl, register: { :global, :fred }
+        use OtpDsl.Genserver, register: { :global, :fred }
 
     The option defaults to `{ :local, my_name }`, where `my_name` is
     an atom derived from the module name.
@@ -42,7 +42,7 @@ defmodule GenserverDsl do
 
 
       defmodule KvServer do
-        use GenserverDsl, initial_state: HashDict.new
+        use OtpDsl.Genserver, initial_state: HashDict.new
 
         defcall put(key, value) do
           reply_with_state(value, Dict.put(state, key, value))

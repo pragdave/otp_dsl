@@ -1,8 +1,8 @@
-defmodule GenserverDslTest do
+defmodule GenserverTest do
   use ExUnit.Case
 
   defmodule MyServer do
-    use GenserverDsl, register: {:local, :myname}
+    use OtpDsl.Genserver, register: {:local, :myname}
 
     defcall an_api() do
       reply({1,2})
@@ -18,14 +18,14 @@ defmodule GenserverDslTest do
   end
 
   defmodule SecondServer do
-    use GenserverDsl
+    use OtpDsl.Genserver
     def init(state) do
       { :ok, state + 321 }
     end
   end
 
   defmodule FactorialServer do
-    use GenserverDsl
+    use OtpDsl.Genserver
 
     defcall factorial!(n) do
       reply(Enum.reduce(1..n, 1, &(&1*&2)))
@@ -33,7 +33,7 @@ defmodule GenserverDslTest do
   end
 
   defmodule KvServer do
-    use GenserverDsl, initial_state: HashDict.new
+    use OtpDsl.Genserver, initial_state: HashDict.new
 
     defcall put(key, value) do
       reply_with_state(value, Dict.put(state, key, value))
@@ -50,7 +50,7 @@ defmodule GenserverDslTest do
   end
 
   test "a default server name, based on the module name, is used if none is set" do
-    assert SecondServer.my_name == :genserver_dsl_test_second_server
+    assert SecondServer.my_name == :genserver_test_second_server
   end
 
   test "the default init function returns unmodified state" do
