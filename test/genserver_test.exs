@@ -8,11 +8,11 @@ defmodule GenserverTest do
       reply({1,2})
     end
 
-    defcall api_with_params_and_state(num) do
+    defcall api_with_params_and_state(num, state) do
       reply(state + num)
     end
 
-    defcall api_with_params_sets_state(num) do
+    defcall api_with_params_sets_state(num, state) do
       reply_with_state(state + num, state - num)
     end
   end
@@ -35,11 +35,11 @@ defmodule GenserverTest do
   defmodule KvServer do
     use OtpDsl.Genserver, initial_state: HashDict.new
 
-    defcall put(key, value) do
+    defcall put(key, value, state) do
       reply_with_state(value, Dict.put(state, key, value))
     end
 
-    defcall get(key) do
+    defcall get(key, state) do
       reply(Dict.get(state, key))
     end
   end
@@ -64,7 +64,7 @@ defmodule GenserverTest do
   test "a simple handle function is established" do
     assert MyServer.handle_call({:an_api}, :from, :state) == { :reply, {1,2}, :state }
   end
-  
+
   test "a handle function with params that uses state" do
     assert MyServer.handle_call({:api_with_params_and_state, 123}, :from, 321) == { :reply, 444, 321 }
   end
