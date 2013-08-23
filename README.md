@@ -144,7 +144,7 @@ Here's a server that implements a simple key/value store:
       end
 
       defcall get(key), kv_store do
-        reply(Dict.get(kv_store, key), kv_store)
+        reply(Dict.get(kv_store, key))
       end
     end
 
