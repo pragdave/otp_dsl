@@ -40,7 +40,7 @@ defmodule GenserverTest do
     end
 
     defcall get(key), kv_store do
-      reply(Dict.get(kv_store, key), kv_store)
+      reply(Dict.get(kv_store, key))
     end
   end
 
