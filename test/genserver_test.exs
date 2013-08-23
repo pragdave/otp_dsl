@@ -8,12 +8,12 @@ defmodule GenserverTest do
       reply({1,2})
     end
 
-    defcall api_with_params_and_state(num, state) do
+    defcall api_with_params_and_state(num), state do
       reply(state + num)
     end
 
-    defcall api_with_params_sets_state(num, state) do
-      reply_with_state(state + num, state - num)
+    defcall api_with_params_sets_state(num), state do
+      reply(state + num, state - num)
     end
   end
 
@@ -35,12 +35,12 @@ defmodule GenserverTest do
   defmodule KvServer do
     use OtpDsl.Genserver, initial_state: HashDict.new
 
-    defcall put(key, value, state) do
-      reply_with_state(value, Dict.put(state, key, value))
+    defcall put(key, value), kv_store do
+      reply(value, Dict.put(kv_store, key, value))
     end
 
-    defcall get(key, state) do
-      reply(Dict.get(state, key))
+    defcall get(key), kv_store do
+      reply(Dict.get(kv_store, key), kv_store)
     end
   end
 

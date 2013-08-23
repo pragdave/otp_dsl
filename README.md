@@ -139,17 +139,18 @@ Here's a server that implements a simple key/value store:
     defmodule KvServer do
       use OtpDsl.Genserver, initial_state: HashDict.new
 
-      defcall put(key, value) do
-        reply_with_state(value, Dict.put(state, key, value))
+      defcall put(key, value), kv_store do
+        reply(value, Dict.put(kv_store, key, value))
       end
 
-      defcall get(key) do
-        reply(Dict.get(state, key))
+      defcall get(key), kv_store do
+        reply(Dict.get(kv_store, key), kv_store)
       end
     end
 
-Note the use of `reply_with_state`. This is used to return a value and
-also to update the server state.
+Note how both functions specify that the state should be stored 
+in the variable `kv_store`, and both return a state in the second parameter
+to reply.
 
 
 ## OtpDsl.Gemfsm

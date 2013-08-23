@@ -1,22 +1,8 @@
 defmodule OtpDsl.Genserver do
 
-  defmodule ReplyUser do
-    @moduledoc false
-    defmacro reply(value) do
-      quote do: { :reply, unquote(value), var!(state, :user) }
-    end
-  end
-
-  defmodule ReplyNil do
-    @moduledoc false
-    defmacro reply(value) do
-      quote do: { :reply, unquote(value), var!(state) }
-    end
-  end
-
   @moduledoc OtpDsl.Util.LazyDoc.for("## OtpDsl.Genserver")
 
-
+  @hidden_state_name :s_t_a_t_e
 
   @doc nil
   defmacro __using__(options) do
@@ -62,55 +48,57 @@ defmodule OtpDsl.Genserver do
        gen_server.call(my_name, {:increment, n})
      end
 
-     def handle_call({:increment, n}, _from, state) do
-       { :reply, n+1, state }
+     def handle_call({:increment, n}, _from, «state») do
+       { :reply, n+1, «state» }
      end
+
+  In this case, our server maintains no state of its own, so we fake out a
+  state (shown as «state» above).
+
+  If you need state, then pass in the name of the state parameter as a second 
+  argument to defcall, and pass a new state out as a second parameter 
+  to the `reply` call.
+
+      defmodule KvServer do
+        use OtpDsl.Genserver, initial_state: HashDict.new
+
+        defcall put(key, value), kv_store do
+          reply(value, Dict.put(kv_store, key, value))
+        end
+
+        defcall get(key), kv_store do
+          reply(Dict.get(kv_store, key), kv_store)
+        end
+      end
+
+  In this example, we make the state available in the variable
+  `kv_store`.
   """
 
-  defmacro defcall({name, meta, params}=defn, do: body) do
-    # See if the user has provided the `state` argument
-    varctx = if Enum.find(params, fn {pname, _, _} -> pname == :state end) do
-      # Remove it from function signatures
-      params = List.keydelete params, :state, 0
-      defn = {name,meta,params}
-      nil
-    else
-      :user
-    end
-
+  defmacro defcall({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
+ 
     quote do
       def unquote(defn) do
         :gen_server.call(my_name, {unquote(name), unquote_splicing(params)})
       end
 
-      def handle_call({unquote(name), unquote_splicing(params)}, var!(_from, nil), var!(state, unquote(varctx))) do
-        # This is a workaround to keep the compiler at bay
-        unquote(if varctx == :user do
-          quote do: import(ReplyUser, only: [reply: 1])
-        else
-          quote do: import(ReplyNil, only: [reply: 1])
-        end)
-
-        unquote(body)
+      def handle_call({unquote(name), unquote_splicing(params)}, var!(_from, nil), unquote(state_name)) do
+        case unquote(body) do
+          { :reply, value, unquote(@hidden_state_name) } -> { :reply, value, unquote(state_name) }
+          { :reply, value, new_state }          -> { :reply, value, new_state }
+        end
       end
     end
   end
 
-  #@doc """
-  #Generate a reply from a call handler that does not change the state.  The value will be
-  #returned as the second element of the :reply tuple.
-  #"""
-  #def reply(value)
-
   @doc """
-  Generate a reply from a call handler and also set the state.  The value will be
-  returned as the second element of the :reply tuple, and the new state as the third.
+  Generate a reply from a call handler. The value will be
+  returned as the second element of the :reply tuple. The optional
+  second paramter gives the new state value. If omitted, it
+  defaults to the value of the state passed into `handle_call`.
   """
-  defmacro reply_with_state(args, new_state) do
-    quote do
-      { :reply, unquote(args), unquote(new_state) }
-    end
-  end
+  def reply(value),            do: { :reply, value, @hidden_state_name }
+  def reply(value, new_state), do: { :reply, value, new_state }
 
   #####
   # Ideally should be private, but...
