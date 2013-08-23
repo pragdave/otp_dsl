@@ -149,8 +149,8 @@ Here's a server that implements a simple key/value store:
     end
 
 Note how both functions specify that the state should be stored 
-in the variable `kv_store`, and both return a state in the second parameter
-to reply.
+in the variable `kv_store`. The first returns an updated state as the second
+argument to reply, and the second leaves the state unchanged.
 
 
 ## OtpDsl.Gemfsm
