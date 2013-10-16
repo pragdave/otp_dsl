@@ -19,14 +19,14 @@ defmodule OtpDsl.Genfsm do
   end
 
   defmacro events([ do: {:__block__, [], event_list}]) do
-    events = Enum.map event_list, generate_event(&1)
+    events = Enum.map event_list, &generate_event(&1)
     quote do
       unquote_splicing(events)
     end
   end
 
   defmacro in_state(state, [do: { :->, _line_no, when_list}]) do
-    states = Enum.map when_list, generate_state(state, &1)
+    states = Enum.map when_list, &generate_state(state, &1)
     quote do
       unquote_splicing(states)
     end
