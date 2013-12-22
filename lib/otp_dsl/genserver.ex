@@ -55,8 +55,8 @@ defmodule OtpDsl.Genserver do
   In this case, our server maintains no state of its own, so we fake out a
   state (shown as «state» above).
 
-  If you need state, then pass in the name of the state parameter as a second 
-  argument to defcall, and pass a new state out as a second parameter 
+  If you need state, then pass in the name of the state parameter as a second
+  argument to defcall, and pass a new state out as a second parameter
   to the `reply` call.
 
       defmodule KvServer do
@@ -76,7 +76,7 @@ defmodule OtpDsl.Genserver do
   """
 
   defmacro defcall({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
- 
+
     quote do
       def unquote(defn) do
         :gen_server.call(my_name, {unquote(name), unquote_splicing(params)})
@@ -91,6 +91,47 @@ defmodule OtpDsl.Genserver do
     end
   end
 
+  @doc """
+  Define both a module API and the function for broadcasting the message to the server.
+  For example, if you write
+
+      defcast chat_message(msg) do
+        IO.puts msg
+        noreply
+      end
+
+  You will get the following two functions defined:
+
+      def chat_message(msg) do
+        gen_server.cast(my_name, {:chat_message, msg})
+      end
+
+      def handle_cast({:chat_message, msg}, _from, «state») do
+        IO.puts msg
+        { :noreply, «state» }
+      end
+
+  In this case, our server maintains no state of its own, so we fake out a
+  state (shown as «state» above).
+
+  If you need state, then pass in the name of the state parameter as a second
+  argument to `defcast`, and pass the new state to `noreply`.
+
+      defmodule ChatServer do
+        use OtpDsl.Genserver, initial_state: []
+
+        defcast message(text), history do
+          noreply [text|history]
+        end
+
+        defcall log(), history do
+          reply history, history
+        end
+      end
+
+  In this example, we make the state available in the variable
+  `history`.
+  """
   defmacro defcast({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
 
     quote do
@@ -107,12 +148,17 @@ defmodule OtpDsl.Genserver do
   @doc """
   Generate a reply from a call handler. The value will be
   returned as the second element of the :reply tuple. The optional
-  second paramter gives the new state value. If omitted, it
+  second parameter gives the new state value. If omitted, it
   defaults to the value of the state passed into `handle_call`.
   """
   def reply(value),            do: { :reply, value, @hidden_state_name }
   def reply(value, new_state), do: { :reply, value, new_state }
 
+  @doc """
+  Generate a "no reply" from a call handler. No value will be returned.
+  The optional parameter is the new state value.
+  If omitted, it defaults to the value of the state passed into `handle_call`.
+  """
   def noreply,            do: { :noreply, @hidden_state_name }
   def noreply(new_state), do: { :noreply, new_state }
 
