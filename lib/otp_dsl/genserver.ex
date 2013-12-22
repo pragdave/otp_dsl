@@ -91,6 +91,19 @@ defmodule OtpDsl.Genserver do
     end
   end
 
+  defmacro defcast({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
+
+    quote do
+      def unquote(defn) do
+        :gen_server.cast(my_name, {unquote(name), unquote_splicing(params)})
+      end
+
+      def handle_cast({unquote(name), unquote_splicing(params)}, unquote(state_name)) do
+        unquote(body)
+      end
+    end
+  end
+
   @doc """
   Generate a reply from a call handler. The value will be
   returned as the second element of the :reply tuple. The optional
@@ -99,6 +112,9 @@ defmodule OtpDsl.Genserver do
   """
   def reply(value),            do: { :reply, value, @hidden_state_name }
   def reply(value, new_state), do: { :reply, value, new_state }
+
+  def noreply,            do: { :noreply, @hidden_state_name }
+  def noreply(new_state), do: { :noreply, new_state }
 
   #####
   # Ideally should be private, but...
