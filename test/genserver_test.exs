@@ -15,6 +15,10 @@ defmodule GenserverTest do
     defcall api_with_params_sets_state(num), state do
       reply(state + num, state - num)
     end
+
+    defcast a_broadcast(), state do
+      noreply(state)
+    end
   end
 
   defmodule SecondServer do
@@ -44,6 +48,14 @@ defmodule GenserverTest do
     end
   end
 
+  defmodule BroadcastServer do
+    use OtpDsl.Genserver
+
+    defcast say_hello(from, name) do
+      from <- {:hello, name}
+      noreply
+    end
+  end
 
   test "the server name gets set" do
     assert MyServer.my_name == :myname
@@ -73,6 +85,10 @@ defmodule GenserverTest do
     assert MyServer.handle_call({:api_with_params_sets_state, 123}, :from, 321) == { :reply, 444, 198 }
   end
 
+  test "a handle function exists for cast message" do
+    assert MyServer.handle_cast({:a_broadcast}, :state) == {:noreply, :state}
+  end
+
   test "The factorial server works" do
     FactorialServer.start_link
     assert FactorialServer.factorial!(10) == 3628800
@@ -85,5 +101,11 @@ defmodule GenserverTest do
     assert KvServer.put(:two, 2) == 2
     assert KvServer.get(:two)    == 2
     assert KvServer.get(:one)    == 1
+  end
+
+  test "The broadcast server works" do
+    BroadcastServer.start_link
+    BroadcastServer.say_hello(self, "Elixir")
+    assert_receive {:hello, "Elixir"}, 100
   end
 end
