@@ -307,7 +307,7 @@ If a timeout fires, it generates a `timeout` event in the next state
 Add the following to your list of dependencies in `mix.exs`:
 
 ``` elixir
-{ :otp_dsl, github: "pragdave/otp_dsl }
+{ :otp_dsl, github: "pragdave/otp_dsl" }
 ```
 
 ## Copyright
