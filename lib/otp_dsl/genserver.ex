@@ -75,7 +75,7 @@ defmodule OtpDsl.Genserver do
   `kv_store`.
   """
 
-  defmacro defcall({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
+  defmacro defcall({name, meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
 
     quote do
       def unquote(defn) do
@@ -132,7 +132,7 @@ defmodule OtpDsl.Genserver do
   In this example, we make the state available in the variable
   `history`.
   """
-  defmacro defcast({name, meta, params}=defn, state_name // {@hidden_state_name, [], nil}, do: body) do
+  defmacro defcast({name, meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
 
     quote do
       def unquote(defn) do
@@ -166,7 +166,7 @@ defmodule OtpDsl.Genserver do
   # Ideally should be private, but...
 
   def name_from(module_name) do
-    Regex.replace(%r{(.)\.?([A-Z])}, inspect(module_name), "\\1_\\2")
+    Regex.replace(~r{(.)\.?([A-Z])}, inspect(module_name), "\\1_\\2")
     |> String.downcase
     |> binary_to_atom
   end
