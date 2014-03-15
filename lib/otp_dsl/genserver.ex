@@ -75,7 +75,7 @@ defmodule OtpDsl.Genserver do
   `kv_store`.
   """
 
-  defmacro defcall({name, meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
+  defmacro defcall({name, _meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
 
     quote do
       def unquote(defn) do
@@ -132,7 +132,7 @@ defmodule OtpDsl.Genserver do
   In this example, we make the state available in the variable
   `history`.
   """
-  defmacro defcast({name, meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
+  defmacro defcast({name, _meta, params}=defn, state_name \\ {@hidden_state_name, [], nil}, do: body) do
 
     quote do
       def unquote(defn) do
