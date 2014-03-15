@@ -5,8 +5,8 @@ defmodule OtpDsl.Mixfile do
     [
       app:     :otp_dsl,
       version: "0.0.1",
-      elixir:  "~> 0.10.2-dev",
-      deps:    deps(Mix.env) 
+      #elixir:  "~> 0.10.2-dev",
+      deps:    deps(Mix.env)
     ]
   end
 
